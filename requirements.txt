@@ -1,1 +1,44 @@
-# skywatch_pro.py
+#!/usr/bin/env python3
+import os
+import time
+import asyncio
+import threading
+from http.server import HTTPServer, BaseHTTPRequestHandler
+
+try:
+    from telegram import Bot
+except ImportError:
+    print("Installing missing libraries...")
+    os.system("pip install python-telegram-bot requests aiohttp")
+    from telegram import Bot
+
+TELEGRAM_TOKEN = os.environ.get("TELEGRAM_TOKEN", "ضع_التوكن_هنا")
+TELEGRAM_CHAT_ID = os.environ.get("TELEGRAM_CHAT_ID", "ضع_المعرف_هنا")
+
+class HealthHandler(BaseHTTPRequestHandler):
+    def do_GET(self):
+        self.send_response(200)
+        self.send_header('Content-type', 'text/html')
+        self.end_headers()
+        self.wfile.write(b"SkyWatch PRO is running")
+
+def send_test_message():
+    try:
+        async def send():
+            bot = Bot(token=TELEGRAM_TOKEN)
+            await bot.send_message(chat_id=TELEGRAM_CHAT_ID, text="✅ SkyWatch PRO started successfully!")
+        asyncio.run(send())
+        print("✅ Test message sent to Telegram.")
+    except Exception as e:
+        print(f"❌ Failed to send test message: {e}")
+
+def start_http_server():
+    port = int(os.environ.get("PORT", 10000))
+    server = HTTPServer(('0.0.0.0', port), HealthHandler)
+    print(f"🌐 HTTP server running on port {port}")
+    server.serve_forever()
+
+if __name__ == "__main__":
+    print("🚀 SkyWatch PRO starting...")
+    send_test_message()
+    start_http_server()
